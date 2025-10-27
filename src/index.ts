@@ -32,7 +32,15 @@ server.setRequestHandler(
           name: "get-request-headers",
           description:
             "Get all headers that were sent with the current request",
-          inputSchema: { type: "object", properties: {} },
+          inputSchema: {
+            type: "object",
+            properties: {
+              headerName: {
+                type: "string",
+                description: "Optional: specific header name to retrieve",
+              },
+            },
+          },
         },
       ],
     };
@@ -50,18 +58,33 @@ server.setRequestHandler(
   async (request, extra) => {
     if (request.params.name === "get-request-headers") {
       try {
+        const args = request.params.arguments as
+          | { headerName?: string }
+          | undefined;
+        const headerName = args?.headerName;
+        console.log("headerName arg: ", headerName);
+
+        let result: any;
+        if (headerName) {
+          // Return specific header if requested
+          result = {
+            success: true,
+            header: headerName,
+            value: currentRequestHeaders[headerName.toLowerCase()],
+          };
+        } else {
+          // Return all headers
+          result = {
+            success: true,
+            headers: currentRequestHeaders,
+          };
+        }
+
         return {
           content: [
             {
               type: "text",
-              text: JSON.stringify(
-                {
-                  success: true,
-                  headers: currentRequestHeaders,
-                },
-                null,
-                2
-              ),
+              text: JSON.stringify(result, null, 2),
             },
           ],
         };
