@@ -1,4 +1,4 @@
-import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import express, { Request, Response, NextFunction } from "express";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { randomUUID } from "crypto";
@@ -10,10 +10,18 @@ const streamableTransports: Record<string, StreamableHTTPServerTransport> = {};
 let currentRequestHeaders: Record<string, string | string[] | undefined> = {};
 
 // Create MCP server instance
-const server = new Server(
+const server = new McpServer(
   {
     name: "headers-mcp-server",
+    title: "Header Test MCP Server",
     version: "1.0.0",
+    websiteUrl: "https://github.com/matsjfunke/header-test-mcp",
+    icons: [
+      {
+        src: "https://avatars.githubusercontent.com/u/125814808?v=4",
+        mimeType: "image/png",
+      },
+    ],
   },
   {
     capabilities: {
@@ -22,87 +30,122 @@ const server = new Server(
   }
 );
 
-// Tool handlers
-server.setRequestHandler(
-  z.object({ method: z.literal("tools/list") }),
-  async () => {
-    return {
-      tools: [
-        {
-          name: "get-request-headers",
-          description:
-            "Get all headers that were sent with the current request",
-          inputSchema: {
-            type: "object",
-            properties: {
-              headerName: {
-                type: "string",
-                description: "Optional: specific header name to retrieve",
-              },
-            },
+server.registerTool(
+  "get-request-headers",
+  {
+    title: "Request Headers Tool",
+    description: "Get all headers that were sent with the current request",
+    inputSchema: {
+      headerName: z
+        .string()
+        .optional()
+        .describe("Optional: specific header name to retrieve"),
+    },
+  },
+  async ({ headerName }) => {
+    try {
+      console.log("headerName arg: ", headerName);
+
+      let result: any;
+      if (headerName) {
+        // Return specific header if requested
+        result = {
+          success: true,
+          header: headerName,
+          value: currentRequestHeaders[headerName.toLowerCase()],
+        };
+      } else {
+        // Return all headers
+        result = {
+          success: true,
+          headers: currentRequestHeaders,
+        };
+      }
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(result, null, 2),
           },
+        ],
+      };
+    } catch (error) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Error: ${
+              error instanceof Error ? error.message : String(error)
+            }`,
+          },
+        ],
+      };
+    }
+  }
+);
+
+server.registerTool(
+  "multiply",
+  {
+    title: "Multiply Tool",
+    description: "Multiply two numbers",
+    inputSchema: {
+      a: z.number().describe("First number"),
+      b: z.number().describe("Second number"),
+    },
+  },
+  async ({ a, b }) => {
+    const result = a * b;
+    return {
+      content: [
+        {
+          type: "text",
+          text: `${a} × ${b} = ${result}`,
         },
       ],
     };
   }
 );
 
-server.setRequestHandler(
-  z.object({
-    method: z.literal("tools/call"),
-    params: z.object({
-      name: z.string(),
-      arguments: z.any().optional(),
-    }),
-  }),
-  async (request, extra) => {
-    if (request.params.name === "get-request-headers") {
-      try {
-        const args = request.params.arguments as
-          | { headerName?: string }
-          | undefined;
-        const headerName = args?.headerName;
-        console.log("headerName arg: ", headerName);
+server.registerTool(
+  "create-profile",
+  {
+    title: "Create User Profile",
+    description:
+      "Create a simple user profile with required and optional fields",
+    inputSchema: {
+      username: z.string().describe("Username (required)"),
+      email: z.string().email().describe("Email address (required)"),
+      age: z.number().min(0).optional().describe("Age in years (optional)"),
+      bio: z.string().optional().describe("Short bio (optional)"),
+    },
+  },
+  async ({ username, email, age, bio }) => {
+    const profile = {
+      username,
+      email,
+      age: age ?? "Not provided",
+      bio: bio ?? "No bio provided",
+      createdAt: new Date().toISOString(),
+    };
 
-        let result: any;
-        if (headerName) {
-          // Return specific header if requested
-          result = {
-            success: true,
-            header: headerName,
-            value: currentRequestHeaders[headerName.toLowerCase()],
-          };
-        } else {
-          // Return all headers
-          result = {
-            success: true,
-            headers: currentRequestHeaders,
-          };
-        }
-
-        return {
-          content: [
+    return {
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify(
             {
-              type: "text",
-              text: JSON.stringify(result, null, 2),
+              success: true,
+              message: `Profile created for ${username}`,
+              profile,
             },
-          ],
-        };
-      } catch (error) {
-        return {
-          content: [
-            {
-              type: "text",
-              text: `Error: ${
-                error instanceof Error ? error.message : String(error)
-              }`,
-            },
-          ],
-        };
-      }
-    }
-
-    throw new Error(`Unknown tool: ${request.params.name}`);
+            null,
+            2
+          ),
+        },
+      ],
+    };
   }
 );
 
