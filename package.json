@@ -13,7 +13,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.15.1",
+    "@modelcontextprotocol/sdk": "^1.24.3",
     "@types/jsforce": "^1.11.5",
     "cors": "^2.8.5",
     "dotenv": "^16.0.0",
