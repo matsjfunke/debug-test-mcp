@@ -27,7 +27,7 @@ const server = new McpServer(
     capabilities: {
       tools: {},
     },
-  }
+  },
 );
 
 server.registerTool(
@@ -82,7 +82,7 @@ server.registerTool(
         ],
       };
     }
-  }
+  },
 );
 
 server.registerTool(
@@ -105,7 +105,32 @@ server.registerTool(
         },
       ],
     };
-  }
+  },
+);
+
+server.registerTool(
+  "sleep_test",
+  {
+    title: "Sleep Test Tool",
+    description:
+      "Sleeps for a specified duration to test timeouts. Use 95+ seconds to trigger timeout.",
+    inputSchema: {
+      seconds: z.number().describe("Number of seconds to sleep"),
+    },
+  },
+  async ({ seconds }) => {
+    console.log(`Sleeping for ${seconds} seconds...`);
+    await new Promise((resolve) => setTimeout(resolve, seconds * 1000));
+
+    return {
+      content: [
+        {
+          type: "text",
+          text: `Successfully slept for ${seconds} seconds`,
+        },
+      ],
+    };
+  },
 );
 
 server.registerTool(
@@ -141,12 +166,12 @@ server.registerTool(
               profile,
             },
             null,
-            2
+            2,
           ),
         },
       ],
     };
-  }
+  },
 );
 
 async function runHttpServer(port: number = 3333) {
@@ -159,7 +184,7 @@ async function runHttpServer(port: number = 3333) {
     res.header("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
     res.header(
       "Access-Control-Allow-Headers",
-      "Content-Type, Authorization, mcp-session-id"
+      "Content-Type, Authorization, mcp-session-id",
     );
     res.header("Access-Control-Expose-Headers", "mcp-session-id");
 
