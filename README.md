@@ -1,8 +1,8 @@
-# Header Test MCP
+# Debug MCP
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.md)
 
-> header-test-mcp is an MCP Server which has one tool `get-request-headers` which returns all headers that were sent with the current request
+> debug-test-mcp is an MCP Server which has tools like `get-request-headers` which returns all headers that were sent with the current request
 
 Use this Server to debug your MCP Host / Client custom header implementation.
 

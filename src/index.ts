@@ -12,10 +12,10 @@ let currentRequestHeaders: Record<string, string | string[] | undefined> = {};
 // Create MCP server instance
 const server = new McpServer(
   {
-    name: "headers-mcp-server",
-    title: "Header Test MCP Server",
+    name: "debug-mcp-server",
+    title: "Debug MCP Server",
     version: "1.0.0",
-    websiteUrl: "https://github.com/matsjfunke/header-test-mcp",
+    websiteUrl: "https://github.com/matsjfunke/debug-mcp-server",
     icons: [
       {
         src: "https://avatars.githubusercontent.com/u/125814808?v=4",
@@ -27,7 +27,7 @@ const server = new McpServer(
     capabilities: {
       tools: {},
     },
-  },
+  }
 );
 
 server.registerTool(
@@ -82,7 +82,32 @@ server.registerTool(
         ],
       };
     }
+  }
+);
+
+server.registerTool(
+  "huge_return",
+  {
+    title: "Huge Return Tool",
+    description: "Returns a huge JSON object",
   },
+  async () => {
+    const result = {
+      a: Array(10000000).fill("a").join(""),
+      b: Array(10000000).fill("b").join(""),
+      c: Array(10000000).fill("c").join(""),
+      d: Array(10000000).fill("d").join(""),
+      e: Array(10000000).fill("e").join(""),
+    };
+    return {
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify(result, null, 2),
+        },
+      ],
+    };
+  }
 );
 
 server.registerTool(
@@ -97,6 +122,7 @@ server.registerTool(
   },
   async ({ a, b }) => {
     const result = a * b;
+    throw new Error("Multiplication failed: invalid input");
     return {
       content: [
         {
@@ -105,7 +131,7 @@ server.registerTool(
         },
       ],
     };
-  },
+  }
 );
 
 server.registerTool(
@@ -130,7 +156,7 @@ server.registerTool(
         },
       ],
     };
-  },
+  }
 );
 
 server.registerTool(
@@ -166,12 +192,45 @@ server.registerTool(
               profile,
             },
             null,
-            2,
+            2
           ),
         },
       ],
     };
+  }
+);
+
+server.registerTool(
+  "extra_response",
+  {
+    title: "Extra Response Tool",
+    description: "Returns an extra response",
   },
+  async () => {
+    return {
+      content: [
+        {
+          type: "text",
+          text: `This is a text response`,
+        },
+      ],
+      otherContent: [
+        {
+          type: "text",
+          text: `This is an extra response`,
+        },
+      ],
+      structuredOutput: {
+        type: "object",
+        properties: {
+          message: {
+            type: "string",
+            description: "The message to return",
+          },
+        },
+      },
+    };
+  }
 );
 
 async function runHttpServer(port: number = 3333) {
@@ -184,7 +243,7 @@ async function runHttpServer(port: number = 3333) {
     res.header("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
     res.header(
       "Access-Control-Allow-Headers",
-      "Content-Type, Authorization, mcp-session-id",
+      "Content-Type, Authorization, mcp-session-id"
     );
     res.header("Access-Control-Expose-Headers", "mcp-session-id");
 
