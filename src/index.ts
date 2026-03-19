@@ -26,7 +26,37 @@ const server = new McpServer(
   {
     capabilities: {
       tools: {},
+      resources: {},
     },
+  }
+);
+
+server.registerResource(
+  "server-info",
+  "debug://server/info",
+  {
+    title: "Server Info Resource",
+    description: "Returns metadata about this debug MCP server",
+    mimeType: "application/json",
+  },
+  async (uri: URL) => {
+    const resource = {
+      name: "debug-mcp-server",
+      version: "1.0.0",
+      transport: "streamable-http",
+      endpoint: "/mcp",
+      generatedAt: new Date().toISOString(),
+    };
+
+    return {
+      contents: [
+        {
+          uri: uri.href,
+          mimeType: "application/json",
+          text: JSON.stringify(resource, null, 2),
+        },
+      ],
+    };
   }
 );
 
