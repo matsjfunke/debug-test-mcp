@@ -2,6 +2,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import express, { Request, Response, NextFunction } from "express";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { randomUUID } from "crypto";
+import { readFileSync } from "fs";
 import { z } from "zod";
 
 // Store transports by session ID
@@ -54,6 +55,29 @@ server.registerResource(
           uri: uri.href,
           mimeType: "application/json",
           text: JSON.stringify(resource, null, 2),
+        },
+      ],
+    };
+  }
+);
+
+server.registerResource(
+  "team-fofo-2020-image",
+  "debug://images/team-fofo-2020",
+  {
+    title: "Team Fofo 2020 Image",
+    description: "Returns the team fofo 2020 PNG image from the content folder",
+    mimeType: "image/png",
+  },
+  async (uri: URL) => {
+    const image = readFileSync("content/team fofo 2020.png");
+
+    return {
+      contents: [
+        {
+          uri: uri.href,
+          mimeType: "image/png",
+          blob: image.toString("base64"),
         },
       ],
     };
