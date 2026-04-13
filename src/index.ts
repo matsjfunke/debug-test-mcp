@@ -223,15 +223,19 @@ server.registerTool(
       username: z.string().describe("Username (required)"),
       email: z.string().email().describe("Email address (required)"),
       age: z.number().min(0).optional().describe("Age in years (optional)"),
-      bio: z.string().optional().describe("Short bio (optional)"),
+      address: z.object({
+        street: z.string().describe("Street address"),
+        city: z.string().describe("City"),
+        zip: z.string().optional().describe("Zip code (optional)"),
+      }).optional().describe("Address (optional)"),
     },
   },
-  async ({ username, email, age, bio }) => {
+  async ({ username, email, age, address }) => {
     const profile = {
       username,
       email,
       age: age ?? "Not provided",
-      bio: bio ?? "No bio provided",
+      address: address ?? "Not provided",
       createdAt: new Date().toISOString(),
     };
 
